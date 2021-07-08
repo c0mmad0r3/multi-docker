@@ -1,0 +1,24 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t pipsae24/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true pipsae24/react-test npm test
+
+after_success:
+  - docker build -t pipsae24/multi-client ./client
+  - docker build -t pipsae24/multi-nginx ./nginx
+  - docker build -t pipsae24/multi-server ./server
+  - docker build -t pipsae24/multi-worker ./worker
+
+#Log in to Docker CLI
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+#Take images and push to docker hub
+  - docker push pipsae24/multi-client
+  - docker push pipsae24/multi-nginx
+  - docker push pipsae24/multi-server
+  - docker push pipsae24/multi-worker
